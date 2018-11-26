@@ -91,7 +91,7 @@ include_once 'sql.php';
                     }
                 }else if(isset ($_GET["anterior"])){
                     $pagina = $pagina-$limit;
-                    if($pagina<=20){
+                    if($pagina<20){
                        $pagina = 0; 
                     }
                 }
