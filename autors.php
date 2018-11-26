@@ -10,7 +10,7 @@ include_once 'sql.php';
 <html>
     <head>
         <meta charset="UTF-8">
-        <title></title>
+        <title>Llista autors</title>
         <style>
             table {
                 border-collapse: collapse;
@@ -20,12 +20,52 @@ include_once 'sql.php';
                 border: 1px solid black;
             }
         </style>
+        
+        <script>
+            window.onload = function() {
+                var codi = document.getElementById("codi");
+                var nom = document.getElementById("nom");
+                
+                if(codi.value != ""){
+                    nom.disabled = true;                    
+                }else if(nom.value != ""){
+                    codi.disabled = true;
+                }           
+                
+                codi.onkeypress = function(){
+                    if(codi.value == ""){
+                        nom.disabled = false;                    
+                    }else{
+                        nom.disabled = true;
+                    }  
+                }
+                
+                nom.onkeypress = function(){
+                    if(nom.value == ""){
+                        codi.disabled = false;                    
+                    }else{
+                        codi.disabled = true;
+                    } 
+                }
+            }
+        </script>
     </head>
     <body>
+        <?php
+        $codi = isset($_GET["codi"])?$_GET["codi"]:"";
+        $nom = isset($_GET["nom"])?$_GET["nom"]:"";
+        $limit = isset($_GET["limit"])?$_GET["limit"]:10;
+        ?>
         <label for="codi">Codi</label>
-        <input type="number" name="codi" id="codi" form="tot"><br>
+        <input type="number" name="codi" id="codi" form="tot" value="<?=$codi?>"><br>
         <label for="nom">Nom</label>
-        <input type="text" name="nom" id="nom" form="tot"><br>
+        <input type="text" name="nom" id="nom" form="tot" value="<?=$nom?>"><br>
+        <select form="tot" name="limit">
+            <option value="10"<?php if($limit==10){echo " selected";} ?>>10</option>
+            <option value="20"<?php if($limit==20){echo " selected";} ?>>20</option>
+            <option value="30"<?php if($limit==30){echo " selected";} ?>>30</option>
+        </select>
+        <br>
         <input type="submit" name="cercar" id="cercar" form="tot"><br>
         <table>
             <tr>
@@ -39,31 +79,13 @@ include_once 'sql.php';
                 </th>
             </tr>
             <?php
-                $mysqli = conectar();
+                $mysqli = conectar();  
                 
-                               
-                
+                //ordre
                 $ordre = "id_aut";
                 if(!empty($_GET["ordre"])){
                     $ordre = $_GET["ordre"];                    
-                }
-                
-                $cerca = "";
-                if(!empty($_GET["cerca"])){
-                    $cerca = $_GET["cerca"];                    
-                }                              
-                
-                $query=$mysqli->query("SELECT COUNT(ID_AUT) FROM AUTORS ".$cerca);
-                $row = $query->fetch_row();
-                $rows = $row[0];               
-                
-                if(isset($_GET["pagina"])){
-                    $pagina = $_GET["pagina"];
-                }else{
-                    $pagina = 0;
                 }                
-                $limit = 20; 
-                
                 if(isset($_GET["asc_codi"])){
                     $ordre = "id_aut";
                 }else if(isset($_GET["des_codi"])) {
@@ -74,11 +96,27 @@ include_once 'sql.php';
                     $ordre = "nom_aut desc";
                 }
                 
+                //cerca
+                $cerca = "";
                 if(!empty($_GET["codi"])){
                     $cerca = "where id_aut = '".$mysqli->real_escape_string($_GET["codi"])."'";
                 }else if(!empty ($_GET["nom"])){
                     $cerca = "where nom_aut like '%".$mysqli->real_escape_string($_GET["nom"])."%'";
-                }
+                }else{
+                    $cerca = "";
+                }                
+                
+                //numero pagina
+                if(isset($_GET["pagina"])){
+                    $pagina = $_GET["pagina"];
+                }else{
+                    $pagina = 0;
+                }                 
+                
+                //paginacio                
+                $query=$mysqli->query("SELECT COUNT(ID_AUT) FROM AUTORS ".$cerca);
+                $row = $query->fetch_row();
+                $rows = $row[0];
                 
                 if(isset($_GET["primer"])){
                     $pagina = 0;
@@ -89,9 +127,12 @@ include_once 'sql.php';
                     if($pagina>=$rows-$limit){
                        $pagina = $rows-$limit; 
                     }
+                    if($rows<$limit){
+                       $pagina = 0; 
+                    }
                 }else if(isset ($_GET["anterior"])){
                     $pagina = $pagina-$limit;
-                    if($pagina<20){
+                    if($pagina<$limit){
                        $pagina = 0; 
                     }
                 }
@@ -109,7 +150,6 @@ include_once 'sql.php';
         </table>
         <form action="" method="get" id="tot">
             <input type="number" name="pagina" id="pagina" value="<?php echo $pagina?>" hidden="">
-            <input type="text" name="cerca" id="cerca" value="<?php echo $cerca?>" hidden="">
             <input type="text" name="ordre" id="ordre" value="<?php echo $ordre?>" hidden="">
             <input type="submit" name="primer" id="primer" value="<<">
             <input type="submit" name="anterior" id="anterior" value="<">
