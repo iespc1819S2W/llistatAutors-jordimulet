@@ -32,7 +32,7 @@ include_once 'sql.php';
                     codi.disabled = true;
                 }           
                 
-                codi.onkeypress = function(){
+                codi.onchange = function(){
                     if(codi.value == ""){
                         nom.disabled = false;                    
                     }else{
@@ -40,7 +40,7 @@ include_once 'sql.php';
                     }  
                 }
                 
-                nom.onkeypress = function(){
+                nom.onchange = function(){
                     if(nom.value == ""){
                         codi.disabled = false;                    
                     }else{
@@ -80,6 +80,17 @@ include_once 'sql.php';
             </tr>
             <?php
                 $mysqli = conectar();  
+                
+                //nou autor
+                if(isset($_POST["newaut"]) && !empty($_POST["autor"])){                    
+                    $query=$mysqli->query("SELECT MAX(ID_AUT) FROM AUTORS");
+                    $max = $query->fetch_row();
+                    $idaut = $max[0]+1;
+                    
+                    $autor = $mysqli->real_escape_string($_POST["autor"]);
+                    $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`) VALUES ('$idaut', '$autor')";
+                    $mysqli->query($insert);
+                }
                 
                 //ordre
                 $ordre = "id_aut";
@@ -141,7 +152,10 @@ include_once 'sql.php';
                 
                 if($resultat=$mysqli->query($consulta)){
                     while($row = $resultat->fetch_assoc()){
-                        echo "<tr><td>".$row["id_aut"]."</td><td>".$row["nom_aut"]."</td></tr>\n";
+                        echo "<tr><td>{$row["id_aut"]}</td><td>{$row["nom_aut"]}</td>"
+                        . "<td><button type='submit' form='formulari' name='editar' value='{$row["id_aut"]}'>Editar</button></td>"
+                        . "<td><button type='submit' form='formulari' name='borrar' value='{$row["id_aut"]}'>Borrar</button></td>"
+                        . "</tr>\n";     
                     }
                     $resultat->free();
                 }
@@ -155,6 +169,12 @@ include_once 'sql.php';
             <input type="submit" name="anterior" id="anterior" value="<">
             <input type="submit" name="seguent" id="seguent" value=">">
             <input type="submit" name="darrer" id="darrer" value=">>">
+        </form>
+        
+        <form action="" method="post">
+            <label for="autor">Nou autor: </label>
+            <input type="text" name="autor" id="autor">
+            <input type="submit" name="newaut" id="newaut" value="Crear autor">
         </form>
     </body>
 </html>
