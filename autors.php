@@ -83,13 +83,26 @@ include_once 'sql.php';
                 
                 //nou autor
                 if(isset($_POST["newaut"]) && !empty($_POST["autor"])){                    
-                    $query=$mysqli->query("SELECT MAX(ID_AUT) FROM AUTORS");
+                    $query=$mysqli->query("SELECT MAX(ID_AUT)+1 FROM AUTORS");
                     $max = $query->fetch_row();
-                    $idaut = $max[0]+1;
+                    $idaut = $max[0];
                     
                     $autor = $mysqli->real_escape_string($_POST["autor"]);
                     $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`) VALUES ('$idaut', '$autor')";
                     $mysqli->query($insert);
+                }
+                
+                //borrar
+                if(isset($_POST["borrar"])){
+                    $query = "DELETE FROM `AUTORS` WHERE ID_AUT={$_POST["borrar"]}";
+                    $mysqli->query($query);                           
+                }
+                
+                //guardar edicio
+                if(isset($_POST["guardar"])){
+                    $autor = $mysqli->real_escape_string($_POST["edicio"]);
+                    $update = "UPDATE `AUTORS` SET `NOM_AUT`='$autor' WHERE ID_AUT={$_POST["guardar"]}";
+                    $mysqli->query($update); 
                 }
                 
                 //ordre
@@ -152,10 +165,18 @@ include_once 'sql.php';
                 
                 if($resultat=$mysqli->query($consulta)){
                     while($row = $resultat->fetch_assoc()){
-                        echo "<tr><td>{$row["id_aut"]}</td><td>{$row["nom_aut"]}</td>"
-                        . "<td><button type='submit' form='formulari' name='editar' value='{$row["id_aut"]}'>Editar</button></td>"
-                        . "<td><button type='submit' form='formulari' name='borrar' value='{$row["id_aut"]}'>Borrar</button></td>"
-                        . "</tr>\n";     
+                        if(isset($_POST["editar"]) && $_POST["editar"]==$row["id_aut"]){
+                            echo "<tr><td>{$row["id_aut"]}</td>"
+                            . "<td><input type'text' form='crud' name='edicio' value='{$row["nom_aut"]}'></td>"
+                            . "<td><button type='submit' form='crud' name='guardar' value='{$row["id_aut"]}'>Guardar</button></td>"
+                            . "<td><button type='submit' form='crud' name='cancelar'>Cancelar</button></td>"
+                            . "</tr>\n";
+                        }else{
+                            echo "<tr><td>{$row["id_aut"]}</td><td>{$row["nom_aut"]}</td>"
+                            . "<td><button type='submit' form='crud' name='editar' value='{$row["id_aut"]}'>Editar</button></td>"
+                            . "<td><button type='submit' form='crud' name='borrar' value='{$row["id_aut"]}'>Borrar</button></td>"
+                            . "</tr>\n";                           
+                        }   
                     }
                     $resultat->free();
                 }
@@ -171,7 +192,7 @@ include_once 'sql.php';
             <input type="submit" name="darrer" id="darrer" value=">>">
         </form>
         
-        <form action="" method="post">
+        <form action="" method="post" id="crud">
             <label for="autor">Nou autor: </label>
             <input type="text" name="autor" id="autor">
             <input type="submit" name="newaut" id="newaut" value="Crear autor">
