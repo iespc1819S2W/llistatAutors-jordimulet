@@ -77,6 +77,10 @@ include_once 'sql.php';
                     <input type="submit" name="asc_nom" id="asc_nom" value="A"  form="tot">
                     <input type="submit" name="des_nom" id="des_nom" value="Z"  form="tot">
                 </th>
+                <th>Nacionalitat      
+                    <input type="submit" name="asc_nac" id="asc_nac" value="A"  form="tot">
+                    <input type="submit" name="des_nac" id="des_nac" value="Z"  form="tot">
+                </th>
             </tr>
             <?php
                 $mysqli = conectar();  
@@ -101,7 +105,7 @@ include_once 'sql.php';
                 //guardar edicio
                 if(isset($_POST["guardar"])){
                     $autor = $mysqli->real_escape_string($_POST["edicio"]);
-                    $update = "UPDATE `AUTORS` SET `NOM_AUT`='$autor' WHERE ID_AUT={$_POST["guardar"]}";
+                    $update = "UPDATE `AUTORS` SET `NOM_AUT`='$autor', `FK_NACIONALITAT`='{$_POST["nacio"]}' WHERE ID_AUT={$_POST["guardar"]}";
                     $mysqli->query($update); 
                 }
                 
@@ -118,6 +122,10 @@ include_once 'sql.php';
                     $ordre = "nom_aut";
                 }else if(isset($_GET["des_nom"])){
                     $ordre = "nom_aut desc";
+                }else if(isset($_GET["asc_nac"])){
+                    $ordre = "fk_nacionalitat";
+                }else if(isset($_GET["des_nac"])){
+                    $ordre = "fk_nacionalitat desc";
                 }
                 
                 //cerca
@@ -161,18 +169,19 @@ include_once 'sql.php';
                     }
                 }
                 
-                $consulta = "SELECT id_aut, nom_aut FROM AUTORS $cerca ORDER BY $ordre limit $pagina,$limit";
+                $consulta = "SELECT id_aut, nom_aut, fk_nacionalitat FROM AUTORS $cerca ORDER BY $ordre limit $pagina,$limit";
                 
                 if($resultat=$mysqli->query($consulta)){
                     while($row = $resultat->fetch_assoc()){
                         if(isset($_POST["editar"]) && $_POST["editar"]==$row["id_aut"]){
                             echo "<tr><td>{$row["id_aut"]}</td>"
                             . "<td><input type'text' form='crud' name='edicio' value='{$row["nom_aut"]}'></td>"
+                            . "<td>". nacio($row["fk_nacionalitat"])."</td>"
                             . "<td><button type='submit' form='crud' name='guardar' value='{$row["id_aut"]}'>Guardar</button></td>"
                             . "<td><button type='submit' form='crud' name='cancelar'>Cancelar</button></td>"
                             . "</tr>\n";
                         }else{
-                            echo "<tr><td>{$row["id_aut"]}</td><td>{$row["nom_aut"]}</td>"
+                            echo "<tr><td>{$row["id_aut"]}</td><td>{$row["nom_aut"]}</td><td>{$row["fk_nacionalitat"]}</td>"
                             . "<td><button type='submit' form='crud' name='editar' value='{$row["id_aut"]}'>Editar</button></td>"
                             . "<td><button type='submit' form='crud' name='borrar' value='{$row["id_aut"]}'>Borrar</button></td>"
                             . "</tr>\n";                           
@@ -180,7 +189,26 @@ include_once 'sql.php';
                     }
                     $resultat->free();
                 }
+                
                 desconectar($mysqli);
+                
+                function nacio($nac){
+                    $nac=strtoupper($nac);
+                    $mysqli2 = conectar(); 
+                    $torna = "<select form='crud' name='nacio'>";
+                    $query = "SELECT nacionalitat FROM NACIONALITATS";
+                    $nacions = $mysqli2->query($query);
+                    while($row = $nacions->fetch_assoc()){
+                        if(strtoupper($row["nacionalitat"]) == $nac){
+                            $torna .= "<option selected value='{$row["nacionalitat"]}'>{$row["nacionalitat"]}</option>";
+                        }else{
+                            $torna .= "<option value='{$row["nacionalitat"]}'>{$row["nacionalitat"]}</option>";
+                        }
+                    }
+                    $torna .= "</selected>";
+                    desconectar($mysqli2);
+                    return $torna;                    
+                }  
             ?>
         </table>
         <form action="" method="get" id="tot">
