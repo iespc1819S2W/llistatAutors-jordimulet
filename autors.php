@@ -106,6 +106,9 @@ include_once 'sql.php';
                 if(isset($_POST["guardar"])){
                     $autor = $mysqli->real_escape_string($_POST["edicio"]);
                     $update = "UPDATE `AUTORS` SET `NOM_AUT`='$autor', `FK_NACIONALITAT`='{$_POST["nacio"]}' WHERE ID_AUT={$_POST["guardar"]}";
+                    if($_POST["nacio"] == "res"){
+                        $update = "UPDATE `AUTORS` SET `NOM_AUT`='$autor', `FK_NACIONALITAT`=null WHERE ID_AUT={$_POST["guardar"]}";
+                    }
                     $mysqli->query($update); 
                 }
                 
@@ -195,7 +198,8 @@ include_once 'sql.php';
                 function nacio($nac){
                     $nac=strtoupper($nac);
                     $mysqli2 = conectar(); 
-                    $torna = "<select form='crud' name='nacio'>";
+                    $torna = "<select form='crud' name='nacio'>"
+                            . "<option value='res'>Sense nacionalitat</option>";
                     $query = "SELECT nacionalitat FROM NACIONALITATS";
                     $nacions = $mysqli2->query($query);
                     while($row = $nacions->fetch_assoc()){
@@ -224,6 +228,7 @@ include_once 'sql.php';
             <label for="autor">Nou autor: </label>
             <input type="text" name="autor" id="autor">
             <input type="submit" name="newaut" id="newaut" value="Crear autor">
+            
         </form>
     </body>
 </html>
