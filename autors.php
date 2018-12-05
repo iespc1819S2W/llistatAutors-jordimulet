@@ -11,16 +11,7 @@ include_once 'sql.php';
     <head>
         <meta charset="UTF-8">
         <title>Llista autors</title>
-        <style>
-            table {
-                border-collapse: collapse;
-            }
-
-            table, th, td {
-                border: 1px solid black;
-            }
-        </style>
-        
+        <link rel="stylesheet" type="text/css" media="screen" href="estil.css"/>        
         <script>
             window.onload = function() {
                 var codi = document.getElementById("codi");
@@ -92,7 +83,12 @@ include_once 'sql.php';
                     $idaut = $max[0];
                     
                     $autor = $mysqli->real_escape_string($_POST["autor"]);
-                    $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`) VALUES ('$idaut', '$autor')";
+                    $insert = "";
+                    if($_POST["nacio"] == "res"){
+                        $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`) VALUES ('$idaut', '$autor')";
+                    }else{
+                        $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`, `FK_NACIONALITAT`) VALUES ('$idaut', '$autor', '{$_POST["nacio"]}')";
+                    }                    
                     $mysqli->query($insert);
                 }
                 
@@ -179,7 +175,7 @@ include_once 'sql.php';
                         if(isset($_POST["editar"]) && $_POST["editar"]==$row["id_aut"]){
                             echo "<tr><td>{$row["id_aut"]}</td>"
                             . "<td><input type'text' form='crud' name='edicio' value='{$row["nom_aut"]}'></td>"
-                            . "<td>". nacio($row["fk_nacionalitat"])."</td>"
+                            . "<td>". nacio($row["fk_nacionalitat"], "crud")."</td>"
                             . "<td><button type='submit' form='crud' name='guardar' value='{$row["id_aut"]}'>Guardar</button></td>"
                             . "<td><button type='submit' form='crud' name='cancelar'>Cancelar</button></td>"
                             . "</tr>\n";
@@ -195,10 +191,10 @@ include_once 'sql.php';
                 
                 desconectar($mysqli);
                 
-                function nacio($nac){
+                function nacio($nac, $form){
                     $nac=strtoupper($nac);
                     $mysqli2 = conectar(); 
-                    $torna = "<select form='crud' name='nacio'>"
+                    $torna = "<select form='$form' name='nacio'>"
                             . "<option value='res'>Sense nacionalitat</option>";
                     $query = "SELECT nacionalitat FROM NACIONALITATS";
                     $nacions = $mysqli2->query($query);
@@ -226,9 +222,11 @@ include_once 'sql.php';
         
         <form action="" method="post" id="crud">
             <label for="autor">Nou autor: </label>
-            <input type="text" name="autor" id="autor">
-            <input type="submit" name="newaut" id="newaut" value="Crear autor">
-            
+            <input type="text" name="autor" id="autor">            
+            <?php
+                echo nacio("", "crud");
+            ?>
+            <input type="submit" name="newaut" id="newaut" value="Crear autor">            
         </form>
     </body>
 </html>
