@@ -84,10 +84,10 @@ include_once 'sql.php';
                     
                     $autor = $mysqli->real_escape_string($_POST["autor"]);
                     $insert = "";
-                    if($_POST["nacio"] == "res"){
+                    if($_POST["nacio2"] == "res"){
                         $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`) VALUES ('$idaut', '$autor')";
                     }else{
-                        $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`, `FK_NACIONALITAT`) VALUES ('$idaut', '$autor', '{$_POST["nacio"]}')";
+                        $insert = "INSERT INTO `AUTORS`(`ID_AUT`, `NOM_AUT`, `FK_NACIONALITAT`) VALUES ('$idaut', '$autor', '{$_POST["nacio2"]}')";
                     }                    
                     $mysqli->query($insert);
                 }
@@ -175,7 +175,7 @@ include_once 'sql.php';
                         if(isset($_POST["editar"]) && $_POST["editar"]==$row["id_aut"]){
                             echo "<tr><td>{$row["id_aut"]}</td>"
                             . "<td><input type'text' form='crud' name='edicio' value='{$row["nom_aut"]}'></td>"
-                            . "<td>". nacio($row["fk_nacionalitat"], "crud")."</td>"
+                            . "<td>". select($mysqli, "crud", "nacio", "SELECT * FROM `NACIONALITATS`", $row["fk_nacionalitat"], "NACIONALITAT", "NACIONALITAT")."</td>"
                             . "<td><button type='submit' form='crud' name='guardar' value='{$row["id_aut"]}'>Guardar</button></td>"
                             . "<td><button type='submit' form='crud' name='cancelar'>Cancelar</button></td>"
                             . "</tr>\n";
@@ -187,26 +187,20 @@ include_once 'sql.php';
                         }   
                     }
                     $resultat->free();
-                }
+                }      
                 
-                desconectar($mysqli);
-                
-                function nacio($nac, $form){
-                    $nac=strtoupper($nac);
-                    $mysqli2 = conectar(); 
-                    $torna = "<select form='$form' name='nacio'>"
-                            . "<option value='res'>Sense nacionalitat</option>";
-                    $query = "SELECT nacionalitat FROM NACIONALITATS";
-                    $nacions = $mysqli2->query($query);
+                function select($mysqli, $form, $name, $query, $igu, $value, $element){ 
+                    $torna = "<select form='$form' name='$name'>"
+                            . "<option value='res'>No hi ha</option>";
+                    $nacions = $mysqli->query($query);
                     while($row = $nacions->fetch_assoc()){
-                        if(strtoupper($row["nacionalitat"]) == $nac){
-                            $torna .= "<option selected value='{$row["nacionalitat"]}'>{$row["nacionalitat"]}</option>";
+                        if(strtoupper($row["$value"]) == strtoupper($igu)){
+                            $torna .= "<option selected value='{$row[$value]}'>{$row[$element]}</option>";
                         }else{
-                            $torna .= "<option value='{$row["nacionalitat"]}'>{$row["nacionalitat"]}</option>";
+                            $torna .= "<option value='{$row[$value]}'>{$row[$element]}</option>";
                         }
                     }
                     $torna .= "</selected>";
-                    desconectar($mysqli2);
                     return $torna;                    
                 }  
             ?>
@@ -224,7 +218,8 @@ include_once 'sql.php';
             <label for="autor">Nou autor: </label>
             <input type="text" name="autor" id="autor">            
             <?php
-                echo nacio("", "crud");
+                echo select($mysqli, "crud", "nacio2", "SELECT * FROM `NACIONALITATS`","", "NACIONALITAT", "NACIONALITAT");
+                desconectar($mysqli);
             ?>
             <input type="submit" name="newaut" id="newaut" value="Crear autor">            
         </form>
